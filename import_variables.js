@@ -20,7 +20,7 @@ async function processVariables() {
             if (!variableMap.has(key)) {
                 variableMap.set(key, {
                     name: v.variable_name,
-                    description: v.variable_description,
+                    description: v.variable_description || v.variable_name, // uses ternary operator, shorthand for "if v.variable.description == '' then use v.variable name"
                     values: []
                 });
             }
@@ -35,6 +35,7 @@ async function processVariables() {
             const payload = {
                 name: variable.name,
                 description: variable.description,
+                defaultValue: variable.values[0], // set default to the first value, as defaults do not exist in legacy system
                 active: true,
                 relatedVariables: [],
                 values: variable.values,
