@@ -69,6 +69,7 @@ async function importConfigurations() {
         console.log(`Successfully created configuration: ${configuration_name} with new ID: ${newConfigurationId}`);
       } catch (error) {
         console.error(`Error creating configuration ${configuration_name}:`, error.response ? error.response.data : error.message);
+        console.error(JSON.stringify(payload));
       }
     }
 
