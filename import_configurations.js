@@ -32,7 +32,7 @@ async function importConfigurations() {
       } = configuration;
 
       // Get the new variable ID from the lookup file
-      const newVariableId = variablesLookup[variableid];
+      const newVariableId = variablesLookup[variableid]?.newVariableId;
 
       if (!newVariableId) {
         console.error(`No new ID found for variable ID ${variableid}`);
