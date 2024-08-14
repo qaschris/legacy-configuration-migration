@@ -3,10 +3,16 @@ const fs = require('fs').promises;
 
 const configurationsFile = 'configurations.json';
 const variablesLookupFile = 'variable_id_lookup.json';
-const configurationsOutputFile = 'configurations_with_new_ids.json';
 const configurationsLookupFile = 'configuration_id_lookup.json';
 const apiEndpoint = 'https://qteststaging2.staging.qtestnet.com/api/v3/configurations';
 const bearerToken = 'aa718c08-e087-4ad3-ad0c-831fc106677e';
+const projectIds = [96134];  // This is an array of project IDs for which you want the configurations to appear, ex. [900, 901, 910]
+
+// Function to find the new variable ID based on the old variable ID
+function findNewVariableId(variablesLookup, oldVariableId) {
+    const match = variablesLookup.find(v => v.oldVariableId === oldVariableId);
+    return match ? match.newVariableId : null;
+}
 
 async function importConfigurations() {
   try {
@@ -20,8 +26,8 @@ async function importConfigurations() {
 
     const configurationsLookup = {};
 
-    // Iterate through each configuration and make API calls
-    for (const configuration of configurations) {
+    // Group configurations by name and collect their variables
+    const groupedConfigurations = configurations.reduce((acc, configuration) => {
       const {
         configurationid,
         configuration_name,
@@ -32,26 +38,36 @@ async function importConfigurations() {
       } = configuration;
 
       // Get the new variable ID from the lookup file
-      const newVariableId = variablesLookup[variableid]?.newVariableId;
+      const newVariableId = findNewVariableId(variablesLookup, variableid);
 
       if (!newVariableId) {
         console.error(`No new ID found for variable ID ${variableid}`);
-        continue;
+        return acc;
       }
 
-      const payload = {
-        name: configuration_name,
-        description: configuration_name,
-        active: true,
-        variables: [
-          {
-            id: newVariableId,
-            value: variable_value
-          }
-        ],
-        projectIds: [0]
-      };
+      if (!acc[configuration_name]) {
+        acc[configuration_name] = {
+          name: configuration_name,
+          description: configuration_name,
+          active: true,
+          variables: [],
+          projectIds: projectIds,
+          originalIds: []
+        };
+      }
 
+      acc[configuration_name].variables.push({
+        id: newVariableId,
+        value: variable_value
+      });
+
+      acc[configuration_name].originalIds.push(configurationid);
+
+      return acc;
+    }, {});
+
+    // Make API calls for each grouped configuration
+    for (const [name, payload] of Object.entries(groupedConfigurations)) {
       try {
         const response = await axios.post(apiEndpoint, payload, {
           headers: {
@@ -61,20 +77,17 @@ async function importConfigurations() {
         });
 
         const newConfigurationId = response.data.id;
-        configurationsLookup[configurationid] = newConfigurationId;
 
-        // Update the original configurations array with the new ID
-        configuration.new_configurationid = newConfigurationId;
+        payload.originalIds.forEach(originalId => {
+          configurationsLookup[originalId] = newConfigurationId;
+        });
 
-        console.log(`Successfully created configuration: ${configuration_name} with new ID: ${newConfigurationId}`);
+        console.log(`Successfully created configuration: ${name} with new ID: ${newConfigurationId}`);
       } catch (error) {
-        console.error(`Error creating configuration ${configuration_name}:`, error.response ? error.response.data : error.message);
+        console.error(`Error creating configuration ${name}:`, error.response ? error.response.data : error.message);
         console.error(JSON.stringify(payload));
       }
     }
-
-    // Write the updated configurations to the output file
-    await fs.writeFile(configurationsOutputFile, JSON.stringify(configurations, null, 4), 'utf8');
 
     // Write the configurations lookup file
     await fs.writeFile(configurationsLookupFile, JSON.stringify(configurationsLookup, null, 4), 'utf8');
