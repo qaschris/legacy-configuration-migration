@@ -3,8 +3,9 @@ const fs = require('fs').promises; // Use the promises API for fs
 
 const variablesFile = 'variables.json';
 const variablesLookupFile = 'variable_id_lookup.json';
-const bearerToken = 'aa718c08-e087-4ad3-ad0c-831fc106677e';
 const apiEndpoint = 'https://qteststaging2.staging.qtestnet.com/api/v3/variables';
+const bearerToken = 'aa718c08-e087-4ad3-ad0c-831fc106677e';
+const projectIds = [96134];  // This is an array of project IDs for which you want the configurations to appear, ex. [900, 901, 910]
 
 async function processVariables() {
     try {
@@ -39,7 +40,7 @@ async function processVariables() {
                 active: true,
                 relatedVariables: [],
                 values: variable.values,
-                projectIds: [0]
+                projectIds: projectIds
             };
 
             try {
