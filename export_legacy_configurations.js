@@ -43,7 +43,7 @@ async function runQueries() {
 
     // Query 3
     const query3 = `
-      SELECT tcr.id AS "testrunid", tcr.name AS "testrun_name",
+      SELECT tcr.projectid as "projectid", tcr.id AS "testrunid", tcr.name AS "testrun_name",
              c.id AS "configurationid", c.name AS "configuration_name"
       FROM test_case_run tcr
       INNER JOIN configurations c ON c.id = tcr.configurationid
