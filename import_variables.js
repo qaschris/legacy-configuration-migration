@@ -7,6 +7,11 @@ const apiEndpoint = 'https://qteststaging2.staging.qtestnet.com/api/v3/variables
 const bearerToken = 'aa718c08-e087-4ad3-ad0c-831fc106677e';
 const projectIds = [96134];  // This is an array of project IDs for which you want the configurations to appear, ex. [900, 901, 910]
 
+// Function to rest in between API calls to avoid the limiter
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function processVariables() {
     try {
         // Read the input file
@@ -61,6 +66,8 @@ async function processVariables() {
             } catch (error) {
                 console.error(`Error creating variable for ${key}:`, error);
             }
+
+            await sleep(500); // Sleep for defined milliseconds between calls (adjust time as needed)
         }
 
         // Write the mapping to a file
