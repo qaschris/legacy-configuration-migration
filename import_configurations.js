@@ -8,6 +8,11 @@ const apiEndpoint = 'https://qteststaging2.staging.qtestnet.com/api/v3/configura
 const bearerToken = 'aa718c08-e087-4ad3-ad0c-831fc106677e';
 const projectIds = [96134];  // This is an array of project IDs for which you want the configurations to appear, ex. [900, 901, 910]
 
+// Function to rest in between API calls to avoid the limiter
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Function to find the new variable ID based on the old variable ID
 function findNewVariableId(variablesLookup, oldVariableId) {
     const match = variablesLookup.find(v => v.oldVariableId === oldVariableId);
@@ -87,6 +92,8 @@ async function importConfigurations() {
         console.error(`Error creating configuration ${name}:`, error.response ? error.response.data : error.message);
         console.error(JSON.stringify(payload));
       }
+
+      await sleep(500); // Sleep for defined milliseconds between calls (adjust time as needed)
     }
 
     // Write the configurations lookup file
