@@ -10,6 +10,8 @@ const pool = new Pool({
   port: 5432, // Default PostgreSQL port
 });
 
+const projectIds = '49, 54, 61' // Replace these with comma delimited qTest project IDs to filter based on project, ex. '49, 54, 61'
+
 // Function to run multiple queries sequentially
 async function runQueries() {
   try {
@@ -48,6 +50,7 @@ async function runQueries() {
       FROM test_case_run tcr
       INNER JOIN configurations c ON c.id = tcr.configurationid
       WHERE tcr.configurationid IS NOT NULL
+      AND tcr.projectid IN (${projectIds})
     `;
     console.log('Executing Query 3:', query3);
     const res3 = await pool.query(query3);
