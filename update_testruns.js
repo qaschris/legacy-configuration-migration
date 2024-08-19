@@ -6,6 +6,11 @@ const configurationsLookupFile = 'configuration_id_lookup.json';
 const apiEndpoint = 'https://qteststaging2.staging.qtestnet.com/api/v3/projects/';
 const bearerToken = 'aa718c08-e087-4ad3-ad0c-831fc106677e';
 
+// Function to rest in between API calls to avoid the limiter
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function updateTestRuns() {
   try {
     // Read the test runs file
@@ -36,6 +41,8 @@ async function updateTestRuns() {
             'Authorization': `Bearer ${bearerToken}`
           }
         });
+        
+        await sleep(500); // Sleep for defined milliseconds between calls (adjust time as needed)
 
         // Log the payload prior to update for debugging
         //console.log(`Payload for test run ${testrunid}:`, JSON.stringify(testRunResponse.data, null, 2));
@@ -60,6 +67,8 @@ async function updateTestRuns() {
         });
 
         console.log(`Successfully updated test run: ${testrunid} with new configuration ID: ${newConfigurationId}`);
+        
+        await sleep(500); // Sleep for defined milliseconds between calls (adjust time as needed)
       } catch (error) {
         console.error(`Error updating test run ${testrunid}:`, error.response ? error.response.data : error.message);
       }
